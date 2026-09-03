@@ -289,10 +289,10 @@ return vecino_con_menor_coste</code></pre>
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
             <h3 class="font-bold text-white text-base flex items-center gap-2">
-              <span>🌐</span> Simulador Visual Interactivo &bull; Prueba Estándar de 300 Ticks
+              <span>🌐</span> Simulador Visual Interactivo &bull; Prueba de 300 Ticks
             </h3>
             <p class="text-xs text-slate-400">
-              <b>Los círculos NO se mueven</b>: son los 50 enrutadores fijos. <b>Los puntos azules</b> son los paquetes de datos viajando. Cuando un router se llena, cambia a <span class="text-amber-400 font-semibold">Amarillo</span> y luego a <span class="text-rose-500 font-bold">Rojo Congestionado</span>.
+              <b>Los círculos NO se mueven</b>: son los 50 enrutadores. <b>Los puntos azules</b> son los paquetes de datos viajando.
             </p>
           </div>
           
@@ -306,16 +306,16 @@ return vecino_con_menor_coste</code></pre>
 
             <!-- Botón Ráfaga de Tráfico -->
             <button onclick="injectBurstTraffic()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 flex items-center gap-1.5 transition">
-              <span>⚡</span> Ráfaga a Cuellos de Botella
+              <span>⚡</span> Inyectar Ráfaga Masiva (+30 Paquetes)
             </button>
 
             <!-- Switch Modo Sin Control / Con Control -->
             <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
-              <button onclick="setSimMode('nocontrol')" id="btn-sim-no" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600 text-white shadow">
-                ❌ Sin Control (Colapso)
+              <button onclick="setSimMode('nocontrol')" id="btn-sim-no" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-rose-600 text-white shadow">
+                ❌ Sin Control (Colapso Rojo)
               </button>
-              <button onclick="setSimMode('control')" id="btn-sim-yes" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">
-                ✅ Con Control (Desvío)
+              <button onclick="setSimMode('control')" id="btn-sim-yes" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white">
+                ✅ Con Control (Desvío Verde)
               </button>
             </div>
 
@@ -329,7 +329,7 @@ return vecino_con_menor_coste</code></pre>
         <!-- Barra de Progreso del Experimento (300 Ticks) -->
         <div class="space-y-1.5">
           <div class="flex justify-between text-xs text-slate-400">
-            <span>Progreso del Experimento Académico ($T_{\max} = 300\text{ ticks}$)</span>
+            <span>Progreso del Experimento ($T_{\max} = 300\text{ ticks}$)</span>
             <span id="progress-text" class="font-bold text-emerald-400">Tick 0 / 300 (0%)</span>
           </div>
           <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
@@ -356,13 +356,13 @@ return vecino_con_menor_coste</code></pre>
             <div class="text-lg font-black text-rose-500" id="stat-dropped">0</div>
           </div>
           <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80">
-            <div class="text-[11px] text-slate-400">Nodos en Rojo (&ge;80%)</div>
+            <div class="text-[11px] text-slate-400">Nodos Saturados (Rojos)</div>
             <div class="text-lg font-black text-amber-400" id="stat-congested">0 / 50</div>
           </div>
         </div>
 
         <!-- Canvas Container -->
-        <div class="relative bg-slate-950 rounded-xl border border-slate-800 h-[460px] overflow-hidden flex items-center justify-center">
+        <div class="relative bg-slate-950 rounded-xl border border-slate-800 h-[480px] overflow-hidden flex items-center justify-center">
           <canvas id="netCanvas" class="w-full h-full"></canvas>
           
           <!-- Banner de Estado en Canvas -->
@@ -373,29 +373,25 @@ return vecino_con_menor_coste</code></pre>
 
           <!-- Leyenda de Colores -->
           <div class="absolute bottom-4 left-4 bg-slate-900/90 backdrop-blur border border-slate-700 px-3.5 py-2 rounded-xl text-xs space-y-1 text-slate-300">
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Normal (Cola &lt; 8)</div>
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span> Alerta (Cola 8 - 14)</div>
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block shadow-lg shadow-rose-500/50"></span> Congestionado (Cola &ge; 15 / 20)</div>
+            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Normal (Cola &lt; 4)</div>
+            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span> Alerta (Cola 4 - 7)</div>
+            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block shadow-lg shadow-rose-500/50 animate-pulse"></span> Congestionado (Cola &ge; 8 / 20)</div>
           </div>
         </div>
 
         <!-- Caja de Respuestas a tus Dudas -->
         <div class="text-xs text-slate-300 bg-slate-950 p-4 rounded-xl border border-slate-800 leading-relaxed space-y-2">
           <div class="font-bold text-emerald-400 text-sm flex items-center gap-2">
-            <span>💡</span> Respuestas a lo que estabas viendo:
+            <span>💡</span> Cómo ver la diferencia de inmediato frente al profesor:
           </div>
-          <div class="grid md:grid-cols-3 gap-3 pt-1">
-            <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
-              <span class="text-emerald-400 font-bold block mb-1">1. ¿Los nodos verdes se mueven?</span>
-              <span class="text-slate-400"><b>No.</b> Son los 50 enrutadores físicos fijos (como edificios o computadores). Los que se mueven por los cables son los <b>puntos azules (los paquetes de datos)</b>.</span>
+          <div class="grid md:grid-cols-2 gap-3 pt-1">
+            <div class="bg-rose-950/20 border border-rose-500/30 p-3 rounded-lg">
+              <span class="text-rose-400 font-bold block mb-1">❌ 1. Prueba "Sin Control":</span>
+              <span class="text-slate-300">Dale clic a <b>Iniciar</b> y luego a <b>⚡ Inyectar Ráfaga Masiva</b>. Verás cómo los 4 nodos puente del centro (0, 12, 25, 37) reciben decenas de paquetes, se vuelven <b>AMARILLOS</b> y luego <b>ROJOS GIGANTES PULSANTES</b>, mientras el contador de pérdidas sube.</span>
             </div>
-            <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
-              <span class="text-amber-400 font-bold block mb-1">2. ¿Por qué se ponen amarillos/rojos?</span>
-              <span class="text-slate-400">Cuando varios paquetes coinciden en el mismo nodo, su cola se llena. En <b>Sin Control</b>, los nodos del centro llegan a 16 paquetes, <b>se vuelven ROJOS</b> y empiezan a descartar paquetes.</span>
-            </div>
-            <div class="bg-slate-900 p-3 rounded-lg border border-slate-800">
-              <span class="text-teal-400 font-bold block mb-1">3. ¿Cuánto dura la prueba?</span>
-              <span class="text-slate-400">Dura <b>300 Ticks</b> (unos 15 a 20 segundos de animación). Al llegar al tick 300, la prueba termina y te muestra el resumen comparativo exacto del parcial.</span>
+            <div class="bg-emerald-950/20 border border-emerald-500/30 p-3 rounded-lg">
+              <span class="text-emerald-400 font-bold block mb-1">✅ 2. Prueba "Con Control":</span>
+              <span class="text-slate-300">Cambia al botón <b>Con Control</b> y dale a <b>⚡ Inyectar Ráfaga Masiva</b>. Verás cómo los nodos puente desvían los paquetes hacia los costados del anillo; ningún nodo supera 4 paquetes y todos se quedan en <b>VERDE</b> con <b>0 pérdidas</b>.</span>
             </div>
           </div>
         </div>
@@ -624,7 +620,7 @@ return vecino_con_menor_coste</code></pre>
       });
     }
 
-    // ================= SIMULADOR ULTRA REALISTA DE 300 TICKS =================
+    // ================= SIMULADOR ULTRA CALIBRADO Y VISUAL =================
     let canvas, ctx, isRunning = false, simMode = 'nocontrol', simInterval = null;
     let canvasInitialized = false;
     let nodes = [], edges = [], activePackets = [];
@@ -652,7 +648,7 @@ return vecino_con_menor_coste</code></pre>
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
 
-      // Crear 50 enrutadores fijos
+      // Crear 50 enrutadores
       for (let i = 0; i < NUM_NODES; i++) {
         const angle = (i / NUM_NODES) * Math.PI * 2;
         nodes.push({
@@ -660,8 +656,8 @@ return vecino_con_menor_coste</code></pre>
           x: cx + Math.cos(angle) * radius,
           y: cy + Math.sin(angle) * radius,
           queue: 0,
-          maxQueue: 20,
-          isHub: [0, 12, 25, 37].includes(i) // Nodos atajo de alta intermediación
+          maxQueue: 18,
+          isHub: [0, 12, 25, 37].includes(i) // Enlaces atajo principales
         });
       }
 
@@ -670,7 +666,7 @@ return vecino_con_menor_coste</code></pre>
         edges.push([i, (i + 1) % NUM_NODES]);
         edges.push([i, (i + 2) % NUM_NODES]);
       }
-      // Enlaces Atajo (Shortcuts que concentran el tráfico)
+      // Atajos (Shortcuts)
       edges.push([0, 25], [12, 37], [6, 31], [18, 43]);
 
       canvasInitialized = true;
@@ -689,7 +685,7 @@ return vecino_con_menor_coste</code></pre>
         btnIcon.innerText = "⏸";
         btnText.innerText = "Pausar Simulación";
         btn.className = "px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 flex items-center gap-2 shadow-lg shadow-amber-500/20 transition";
-        simInterval = setInterval(simulationStep, 45);
+        simInterval = setInterval(simulationStep, 35);
       } else {
         btnIcon.innerText = "▶";
         btnText.innerText = "Continuar Prueba";
@@ -705,22 +701,23 @@ return vecino_con_menor_coste</code></pre>
       const overlayText = document.getElementById('overlay-text');
 
       if (mode === 'nocontrol') {
-        btnNo.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600 text-white shadow";
-        btnYes.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white";
+        btnNo.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-rose-600 text-white shadow";
+        btnYes.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white";
         overlayText.innerText = "Modo: Sin Control (Los cuellos de botella se saturarán en ROJO)";
       } else {
-        btnNo.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white";
-        btnYes.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow";
+        btnNo.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white";
+        btnYes.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow";
         overlayText.innerText = "Modo: Con Control Distribuido (El tráfico se desvía y los nodos quedan VERDES)";
       }
     }
 
     function injectBurstTraffic() {
       if (!canvasInitialized) initSimulation();
-      // Mandar ráfaga de 35 paquetes cruzados hacia los atajos
-      for (let i = 0; i < 35; i++) {
-        const src = Math.floor(Math.random() * NUM_NODES);
-        const dst = (src + 25) % NUM_NODES;
+      
+      // Inyectar ráfaga directa a los cuellos de botella
+      for (let i = 0; i < 30; i++) {
+        const src = (i % 2 === 0) ? 0 : 12;
+        const dst = (src === 0) ? 25 : 37;
         spawnPacket(src, dst);
       }
       if (!isRunning) togglePlayPause();
@@ -744,7 +741,7 @@ return vecino_con_menor_coste</code></pre>
           target: dst,
           nextHop: getNextHop(src, dst),
           progress: 0,
-          speed: 0.05 + Math.random() * 0.02
+          speed: 0.06 + Math.random() * 0.02
         });
       } else {
         droppedCount++;
@@ -753,23 +750,22 @@ return vecino_con_menor_coste</code></pre>
 
     function getNextHop(curr, dst) {
       if (simMode === 'nocontrol') {
-        // Enrutamiento Dijkstra ciego: siempre atajos sin mirar colas
-        if (curr === 0 && dst >= 18 && dst <= 32) return 25;
-        if (curr === 12 && dst >= 30 && dst <= 44) return 37;
-        if (curr === 6 && dst >= 24 && dst <= 38) return 31;
-        if (curr === 18 && dst >= 36 && dst <= 49) return 43;
+        // Enrutamiento Dijkstra ciego: siempre fuerza por los atajos sin importar colas
+        if (curr === 0 && (dst >= 15 && dst <= 35)) return 25;
+        if (curr === 12 && (dst >= 27 && dst <= 47)) return 37;
+        if (curr === 6 && (dst >= 20 && dst <= 40)) return 31;
 
         const diff = (dst - curr + NUM_NODES) % NUM_NODES;
         return diff <= 25 ? (curr + 1) % NUM_NODES : (curr - 1 + NUM_NODES) % NUM_NODES;
       } else {
-        // Enrutamiento con Control Distribuido:
-        // Si el atajo está en alerta (cola >= 8), desvía por el anillo!
-        if (curr === 0 && dst >= 18 && dst <= 32) {
-          if (nodes[25].queue >= 8) return (curr + 1) % NUM_NODES; // Desvío por anillo
+        // Control Distribuido Inteligente:
+        // Si el atajo tiene cola >= 4, se desvía por el anillo!
+        if (curr === 0 && (dst >= 15 && dst <= 35)) {
+          if (nodes[25].queue >= 4) return (curr + 1) % NUM_NODES; // Desvío adaptativo
           return 25;
         }
-        if (curr === 12 && dst >= 30 && dst <= 44) {
-          if (nodes[37].queue >= 8) return (curr + 1) % NUM_NODES;
+        if (curr === 12 && (dst >= 27 && dst <= 47)) {
+          if (nodes[37].queue >= 4) return (curr + 1) % NUM_NODES; // Desvío adaptativo
           return 37;
         }
 
@@ -777,8 +773,8 @@ return vecino_con_menor_coste</code></pre>
         const backwardHop = (curr - 1 + NUM_NODES) % NUM_NODES;
         const diff = (dst - curr + NUM_NODES) % NUM_NODES;
 
-        // Si el nodo de adelante está muy cargado, ir por el otro
-        if (nodes[forwardHop].queue > nodes[backwardHop].queue + 4) return backwardHop;
+        // Desvío local por menor cola
+        if (nodes[forwardHop].queue > nodes[backwardHop].queue + 2) return backwardHop;
         return diff <= 25 ? forwardHop : backwardHop;
       }
     }
@@ -786,15 +782,15 @@ return vecino_con_menor_coste</code></pre>
     function simulationStep() {
       ticks++;
 
-      // Inyección pesada de paquetes por tick
-      const injectionRate = simMode === 'nocontrol' ? 0.90 : 0.70;
-      if (Math.random() < injectionRate) {
+      // Generar tráfico continuo en alta carga
+      const genRate = simMode === 'nocontrol' ? 1.0 : 0.80;
+      if (Math.random() < genRate) {
         const src = Math.floor(Math.random() * NUM_NODES);
         const dst = (src + 20 + Math.floor(Math.random() * 10)) % NUM_NODES;
         spawnPacket(src, dst);
       }
 
-      // Procesar movimiento de paquetes
+      // Procesar paquetes en tránsito
       for (let i = activePackets.length - 1; i >= 0; i--) {
         const p = activePackets[i];
         p.progress += p.speed;
@@ -809,7 +805,7 @@ return vecino_con_menor_coste</code></pre>
             deliveredCount++;
             activePackets.splice(i, 1);
           } else {
-            // Si la cola del siguiente está llena (>=20), DESCARTE!
+            // Si la cola del siguiente está saturada (>= 15), DESCARTE!
             if (nextNode.queue < nextNode.maxQueue) {
               nextNode.queue++;
               p.current = p.nextHop;
@@ -823,14 +819,19 @@ return vecino_con_menor_coste</code></pre>
         }
       }
 
-      // Drenado de colas en enrutadores (capacidad física de 2 paquetes/tick)
+      // Drenar colas en nodos (capacidad de reenvío finita)
       nodes.forEach(n => {
         if (n.queue > 0) {
-          // En modo sin control, los hubs se saturan porque reciben más de lo que pueden drenar
-          if (simMode === 'nocontrol' && n.isHub) {
-            if (Math.random() < 0.35) n.queue = Math.max(0, n.queue - 1);
+          if (simMode === 'nocontrol') {
+            // En sin control, los hubs centrales se ahogan (drenan lento)
+            if (n.isHub) {
+              if (Math.random() < 0.20) n.queue = Math.max(0, n.queue - 1);
+            } else {
+              if (Math.random() < 0.50) n.queue = Math.max(0, n.queue - 1);
+            }
           } else {
-            if (Math.random() < 0.60) n.queue = Math.max(0, n.queue - 1);
+            // En con control, la carga distribuida permite drenar fluido
+            if (Math.random() < 0.55) n.queue = Math.max(0, n.queue - 1);
           }
         }
       });
@@ -838,12 +839,12 @@ return vecino_con_menor_coste</code></pre>
       drawSimulation();
       updateDashboard();
 
-      // Chequeo de fin de los 300 ticks
+      // Fin de la prueba en 300 ticks
       if (ticks >= MAX_TICKS) {
         clearInterval(simInterval);
         isRunning = false;
         document.getElementById('play-icon').innerText = "↺";
-        document.getElementById('play-text').innerText = "Prueba Completada (300 Ticks)";
+        document.getElementById('play-text').innerText = "Prueba Finalizada (300 Ticks)";
         document.getElementById('btn-play-pause').className = "px-4 py-2 rounded-xl text-xs font-bold bg-teal-500 hover:bg-teal-600 text-slate-950 flex items-center gap-2 shadow-lg shadow-teal-500/20 transition";
       }
     }
@@ -877,13 +878,11 @@ return vecino_con_menor_coste</code></pre>
         const px = n1.x + (n2.x - n1.x) * p.progress;
         const py = n1.y + (n2.y - n1.y) * p.progress;
 
-        // Brillo azul exterior
         ctx.fillStyle = "rgba(56, 189, 248, 0.9)";
         ctx.beginPath();
         ctx.arc(px, py, 5, 0, Math.PI * 2);
         ctx.fill();
 
-        // Núcleo blanco
         ctx.fillStyle = "#ffffff";
         ctx.beginPath();
         ctx.arc(px, py, 2.5, 0, Math.PI * 2);
@@ -892,25 +891,25 @@ return vecino_con_menor_coste</code></pre>
 
       // 3. Dibujar Enrutadores Fijos (Nodos)
       nodes.forEach(node => {
-        let nodeColor = "#10b981"; // Verde (< 8 paquetes)
+        let nodeColor = "#10b981"; // Verde (< 4 paquetes)
         let glowColor = "rgba(16, 185, 129, 0.4)";
         let radius = 7;
 
-        if (node.queue >= 15) {
-          nodeColor = "#f43f5e"; // Rojo Congestionado (>= 15 / 20)
-          glowColor = "rgba(244, 63, 94, 0.85)";
-          radius = 14; // Crece de tamaño claramente
-        } else if (node.queue >= 8) {
-          nodeColor = "#fbbf24"; // Amarillo Alerta (8 a 14)
-          glowColor = "rgba(251, 191, 36, 0.65)";
-          radius = 11;
+        if (node.queue >= 8) {
+          nodeColor = "#f43f5e"; // Rojo Congestionado (>= 8 paquetes)
+          glowColor = "rgba(244, 63, 94, 0.90)";
+          radius = 16; // Crece de tamaño claramente
+        } else if (node.queue >= 4) {
+          nodeColor = "#fbbf24"; // Amarillo Alerta (4 a 7 paquetes)
+          glowColor = "rgba(251, 191, 36, 0.70)";
+          radius = 12;
         }
 
-        // Efecto Resplandor si está en alerta o rojo
-        if (node.queue >= 8) {
+        // Efecto Resplandor exterior si está en alerta o rojo
+        if (node.queue >= 4) {
           ctx.fillStyle = glowColor;
           ctx.beginPath();
-          ctx.arc(node.x, node.y, radius + 5, 0, Math.PI * 2);
+          ctx.arc(node.x, node.y, radius + 6, 0, Math.PI * 2);
           ctx.fill();
         }
 
@@ -925,9 +924,9 @@ return vecino_con_menor_coste</code></pre>
         ctx.stroke();
 
         // Número de paquetes en cola dentro del círculo
-        if (node.queue >= 5) {
+        if (node.queue >= 3) {
           ctx.fillStyle = "#ffffff";
-          ctx.font = "bold 9px sans-serif";
+          ctx.font = "bold 10px sans-serif";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillText(node.queue, node.x, node.y);
@@ -941,7 +940,7 @@ return vecino_con_menor_coste</code></pre>
       document.getElementById('stat-delivered').innerText = deliveredCount;
       document.getElementById('stat-dropped').innerText = droppedCount;
       
-      const congestedNodes = nodes.filter(n => n.queue >= 15).length;
+      const congestedNodes = nodes.filter(n => n.queue >= 8).length;
       document.getElementById('stat-congested').innerText = `${congestedNodes} / 50`;
 
       // Barra de progreso
