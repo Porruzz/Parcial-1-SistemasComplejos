@@ -17,9 +17,10 @@ ENV/
 *.swp
 *.swo
 
-# Documentación interna y archivos PDF/MD auxiliares
+# Documentación interna y archivos auxiliares
 docs/
 *.pdf
+!informe.pdf
 *.md
 !README.md
 
