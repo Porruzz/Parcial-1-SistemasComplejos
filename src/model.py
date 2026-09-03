@@ -1,8 +1,16 @@
 """
-model.py
-========
-Núcleo del Modelamiento Basado en Agentes (ABM) para el control de congestión.
-Define Packet, NodeState, RouterAgent y NetworkCongestionModel.
+Modulo Central del Modelo Basado en Agentes (src/model.py)
+==========================================================
+Implementa las entidades computacionales, la maquina de estados finitos (Patron State),
+el agente autonomo de enrutamiento (RouterAgent) y la clase orquestadora de la simulacion
+compleja (NetworkCongestionModel).
+
+Arquitectura del Modelo:
+------------------------
+- NodeState (Enum): Estados discretos del enrutador (NORMAL, ALERT, CONGESTED).
+- Packet (dataclass): Entidad discreta de informacion que fluye a traves de los enlaces.
+- RouterAgent: Agente con memoria local finita (cola FIFO), sensado de vecindario y capacidad de reenvio.
+- NetworkCongestionModel: Administrador del espacio topologico, inyeccion estocastica y sincronizacion temporal.
 """
 
 from __future__ import annotations
@@ -29,15 +37,39 @@ from src.metrics import MetricsObserver
 
 
 class NodeState(Enum):
-    """Patrón State: Estados del enrutador según ocupación de búfer."""
-    NORMAL = "NORMAL"         # Ocupación < 50%
-    ALERT = "ALERT"           # 50% <= Ocupación < 80%
-    CONGESTED = "CONGESTED"   # Ocupación >= 80%
+    """
+    Patron State: Representacion de los estados de saturacion de un enrutador.
+    - NORMAL: Ocupacion de cola menor al 50%.
+    - ALERT: Ocupacion de cola entre 50% y 80% (alerta temprana).
+    - CONGESTED: Ocupacion de cola mayor o igual al 80% (saturacion critica).
+    """
+    NORMAL = "NORMAL"
+    ALERT = "ALERT"
+    CONGESTED = "CONGESTED"
 
 
 @dataclass
 class Packet:
-    """Entidad discreta de datos que transita por la red."""
+    """
+    Entidad de datos atomica que transita entre los nodos de la red.
+
+    Atributos:
+    ----------
+    packet_id : int
+        Identificador secuencial unico del paquete.
+    src : int
+        Identificador del nodo de origen que genero el paquete.
+    dst : int
+        Identificador del nodo destino final del paquete.
+    t_gen : int
+        Paso temporal (tick) en el que fue creado el paquete.
+    hops : int
+        Numero de saltos acumulados en el trayecto.
+    prev_hop : Optional[int]
+        Identificador del nodo inmediatamente anterior en la ruta (para mitigacion de rebote).
+    payload_size : int
+        Tamano logico del paquete (1 unidad de capacidad de bufer).
+    """
     packet_id: int
     src: int
     dst: int
@@ -49,8 +81,10 @@ class Packet:
 
 class RouterAgent:
     """
-    Agente Enrutador Autónomo.
+    Agente Enrutador Autonomo.
+    Representa un nodo de la red con capacidades de almacenamiento finito, sensado local y reenvio.
     """
+
     def __init__(
         self,
         node_id: int,
@@ -60,6 +94,9 @@ class RouterAgent:
         alert_threshold: float = ALERT_THRESHOLD,
         crit_threshold: float = CRIT_THRESHOLD
     ):
+        """
+        Inicializa el agente enrutador con sus parametros de hardware y enlaces.
+        """
         self.node_id = node_id
         self.model = model
         self.queue_capacity = queue_capacity
@@ -67,11 +104,13 @@ class RouterAgent:
         self.alert_threshold = alert_threshold
         self.crit_threshold = crit_threshold
 
+        # Estructuras de colas
         self.queue: collections.deque[Packet] = collections.deque()
-        self.incoming_buffer: List[Packet] = []
+        self.incoming_buffer: List[Packet] = []  # Bufer intermedio para evitar sesgos de orden dentro del mismo tick
         self.state: NodeState = NodeState.NORMAL
         self.neighbors: List[int] = []
 
+        # Contadores locales de telemetria
         self.generated_count: int = 0
         self.delivered_count: int = 0
         self.dropped_queue_full: int = 0
@@ -79,9 +118,13 @@ class RouterAgent:
 
     @property
     def occupancy_ratio(self) -> float:
+        """Calcula la razon de ocupacion actual de la cola (rho = |Q| / C_q)."""
         return len(self.queue) / self.queue_capacity
 
     def update_state(self) -> None:
+        """
+        Actualiza el estado FSM del enrutador de acuerdo a los umbrales de ocupacion.
+        """
         ratio = self.occupancy_ratio
         if ratio >= self.crit_threshold:
             self.state = NodeState.CONGESTED
@@ -91,6 +134,16 @@ class RouterAgent:
             self.state = NodeState.NORMAL
 
     def receive_packet(self, packet: Packet) -> bool:
+        """
+        Gestiona la recepcion de un paquete entrante.
+        Si la cola y el bufer entrante no superan la capacidad maxima, se acepta el paquete.
+        En caso contrario, se descarta el paquete y se incrementa el contador de perdidas.
+
+        Retorna:
+        --------
+        bool
+            True si el paquete fue encolado con exito, False si fue descartado por cola llena.
+        """
         if len(self.queue) + len(self.incoming_buffer) < self.queue_capacity:
             self.incoming_buffer.append(packet)
             return True
@@ -100,6 +153,9 @@ class RouterAgent:
             return False
 
     def flush_incoming_buffer(self) -> None:
+        """
+        Transfiere los paquetes recibidos en el bufer entrante hacia la cola principal FIFO.
+        """
         while self.incoming_buffer and len(self.queue) < self.queue_capacity:
             self.queue.append(self.incoming_buffer.pop(0))
         if self.incoming_buffer:
@@ -108,6 +164,12 @@ class RouterAgent:
             self.incoming_buffer.clear()
 
     def process_and_forward(self) -> None:
+        """
+        Procesa hasta C_ell paquetes de la cola principal en el tick actual:
+        - Si el paquete alcanzo su destino final, se registra su entrega y se computa su latencia.
+        - Si el paquete requiere continuar en transito, se delega en la estrategia activa la
+          seleccion del siguiente salto vecino y se transmite.
+        """
         packets_to_send = min(self.link_capacity, len(self.queue))
         for _ in range(packets_to_send):
             if not self.queue:
@@ -115,13 +177,13 @@ class RouterAgent:
             packet = self.queue.popleft()
             packet.hops += 1
 
-            # Caso 1: Destino alcanzado
+            # Caso 1: Destino alcanzado en este nodo
             if packet.dst == self.node_id:
                 self.delivered_count += 1
                 self.model.on_packet_delivered(packet)
                 continue
 
-            # Caso 2: Reenviar al siguiente salto delegando en la estrategia
+            # Caso 2: Delegacion en la estrategia de enrutamiento
             next_hop = self.model.strategy.select_next_hop(
                 current_node=self.node_id,
                 dst_node=packet.dst,
@@ -145,8 +207,10 @@ class RouterAgent:
 
 class NetworkCongestionModel:
     """
-    Modelo Central de Simulación de Tráfico y Control de Congestión.
+    Clase Principal del Modelo Basado en Agentes para la Simulacion de Congestion en Redes.
+    Administra la topologia, la ejecucion paso a paso (step) y la sincronizacion de telemetria.
     """
+
     def __init__(
         self,
         num_nodes: int = NUM_NODES,
@@ -161,6 +225,9 @@ class NetworkCongestionModel:
         seed: int = 42,
         max_steps: int = DEFAULT_SIMULATION_STEPS
     ):
+        """
+        Instancia el modelo completo con la configuracion experimental especificada.
+        """
         self.num_nodes = num_nodes
         self.k_neighbors = k_neighbors
         self.rewire_prob = rewire_prob
@@ -173,9 +240,11 @@ class NetworkCongestionModel:
         self.seed = seed
         self.max_steps = max_steps
 
+        # Fijar semillas para reproducibilidad determinista
         random.seed(seed)
         np.random.seed(seed)
 
+        # Generacion de la topologia Watts-Strogatz
         self.graph = TopologyFactory.create_watts_strogatz(
             n=num_nodes, k=k_neighbors, p=rewire_prob, seed=seed
         )
@@ -184,6 +253,7 @@ class NetworkCongestionModel:
         )
         self.betweenness_centrality = nx.betweenness_centrality(self.graph)
 
+        # Instanciacion de los 50 agentes enrutadores
         self.agents: List[RouterAgent] = []
         self.agent_map: Dict[int, RouterAgent] = {}
         for i in range(num_nodes):
@@ -197,6 +267,7 @@ class NetworkCongestionModel:
             self.agents.append(agent)
             self.agent_map[i] = agent
 
+        # Variables de estado global de la simulacion
         self.current_step: int = 0
         self.packet_counter: int = 0
         self.total_generated: int = 0
@@ -211,12 +282,18 @@ class NetworkCongestionModel:
         self.metrics = MetricsObserver()
 
     def on_packet_delivered(self, packet: Packet) -> None:
+        """Registra la entrega exitosa de un paquete y almacena su latencia extremo a extremo."""
         self.total_delivered += 1
         self.step_delivered_count += 1
         latency = self.current_step - packet.t_gen
         self.latencies_history.append(latency)
 
     def inject_traffic(self) -> None:
+        """
+        Fase de generacion de trafico:
+        Cada nodo genera estocasticamente un paquete con probabilidad lambda hacia un destino uniforme.
+        Si la estrategia activa senala condicion de freno (throttling), la tasa se reduce al 50%.
+        """
         for agent in self.agents:
             effective_rate = self.injection_rate
             if self.strategy.should_throttle_injection(agent):
@@ -243,36 +320,58 @@ class NetworkCongestionModel:
                     self.step_dropped_count += 1
 
     def step(self) -> None:
+        """
+        Ejecuta un ciclo discreto de simulacion (tick temporal):
+        1. Generacion e inyeccion estocastica de trafico.
+        2. Integracion de paquetes del bufer entrante a las colas.
+        3. Sensado local de ocupacion para actualizar estados de saturacion.
+        4. Procesamiento y reenvio concurrente en orden aleatorizado.
+        5. Actualizacion posterior de estados.
+        6. Registro de metricas en el observador.
+        """
         self.step_generated_count = 0
         self.step_delivered_count = 0
         self.step_dropped_count = 0
 
-        # 1. Inyección de tráfico
+        # 1. Inyeccion
         self.inject_traffic()
 
-        # 2. Vaciado de búferes entrantes
+        # 2. Vaciado de buferes entrantes
         for agent in self.agents:
             agent.flush_incoming_buffer()
 
-        # 3. Sensado de ocupación
+        # 3. Sensado de estado previo
         for agent in self.agents:
             agent.update_state()
 
-        # 4. Procesamiento y reenvío concurrente
+        # 4. Procesamiento y reenvio concurrente
         agent_order = self.agents.copy()
         random.shuffle(agent_order)
         for agent in agent_order:
             agent.process_and_forward()
 
-        # 5. Actualización de estado
+        # 5. Actualizacion posterior de estado
         for agent in self.agents:
             agent.update_state()
 
-        # 6. Registro de métricas
+        # 6. Registro de telemetria
         self.metrics.record_step(self)
         self.current_step += 1
 
     def run(self, steps: Optional[int] = None) -> pd.DataFrame:
+        """
+        Ejecuta la simulacion completa por el numero total de pasos configurado.
+
+        Parametros:
+        -----------
+        steps : Optional[int]
+            Numero de pasos a ejecutar (por defecto max_steps = 300).
+
+        Retorna:
+        --------
+        pd.DataFrame
+            Serie temporal con todas las metricas recolectadas tick a tick.
+        """
         total_steps = steps or self.max_steps
         for _ in range(total_steps):
             self.step()

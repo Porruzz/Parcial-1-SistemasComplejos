@@ -1,7 +1,21 @@
 """
-experiments.py
-==============
-Ejecutor de experimentos masivos (Batch Runner) con inferencia estadística (IC 95%).
+Modulo de Ejecucion de Experimentos Masivos (src/experiments.py)
+================================================================
+Implementa el ejecutor por lotes (Batch Runner) para la evaluacion factorial completa
+del sistema complejo bajo dos condiciones de enrutamiento y tres escenarios de carga de trafico.
+
+Matriz Experimental:
+--------------------
+- Condiciones (2): Sin Control (Dijkstra) vs Con Control Distribuido (Backpressure).
+- Escenarios de Carga (3): Baja (lambda=0.04), Media (lambda=0.12), Alta (lambda=0.28).
+- Replicas por Combinacion (10): Semillas deterministas pseudoaleatorias.
+- Total de Corridas: 2 x 3 x 10 = 60 simulaciones independientes de 300 ticks.
+
+Inferencia Estadistica:
+-----------------------
+Para cada combinacion se calcula la media muestral, la desviacion estandar (ddof=1)
+y el Intervalo de Confianza al 95% utilizando la distribucion t de Student:
+    IC_95% = t_(0.975, n-1) * (s / sqrt(n))
 """
 
 import os
@@ -18,14 +32,36 @@ from src.strategies import (
     DistributedBackpressureStrategy
 )
 
+# Mapeo de condiciones experimentales a sus clases de estrategia correspondientes
 CONDITIONS = {
     "Sin Control": BaselineShortestPathStrategy,
     "Con Control": DistributedBackpressureStrategy
 }
 
 
-def calculate_recovery_time(df_steps: pd.DataFrame, threshold_congested: float = 0.30, recovery_level: float = 0.05) -> float:
-    pcr_series = df_steps["pcr"].values
+def calculate_recovery_time(
+    df_steps: pd.DataFrame,
+    threshold_congested: float = 0.30,
+    recovery_level: float = 0.05
+) -> float:
+    """
+    Calcula el tiempo promedio de recuperacion de la red tras un episodio de saturacion.
+
+    Parametros:
+    -----------
+    df_steps : pd.DataFrame
+        Serie temporal de la simulacion con la columna 'pcr'.
+    threshold_congested : float
+        Proporcion de nodos congestionados para considerar que la red entro en crisis (PCR >= 30%).
+    recovery_level : float
+        Proporcion de nodos congestionados para considerar que la red retorno a estabilidad (PCR <= 5%).
+
+    Retorna:
+    --------
+    float
+        Numero medio de ticks transcurridos desde el inicio de la crisis hasta la recuperacion.
+    """
+    pcr_series = df_steps["pcr"].values / 100.0 if df_steps["pcr"].max() > 1.0 else df_steps["pcr"].values
     in_congestion = False
     congestion_start = 0
     recovery_times = []
@@ -41,7 +77,27 @@ def calculate_recovery_time(df_steps: pd.DataFrame, threshold_congested: float =
     return float(np.mean(recovery_times)) if recovery_times else 0.0
 
 
-def run_experiments(output_dir: str = "data", max_steps: int = DEFAULT_SIMULATION_STEPS) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def run_experiments(
+    output_dir: str = "data",
+    max_steps: int = DEFAULT_SIMULATION_STEPS
+) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """
+    Ejecuta el protocolo experimental completo de 60 simulaciones y exporta los datasets a CSV.
+
+    Parametros:
+    -----------
+    output_dir : str
+        Directorio destino para guardar los archivos CSV generados (por defecto 'data').
+    max_steps : int
+        Numero de pasos temporales por corrida (por defecto 300 ticks).
+
+    Retorna:
+    --------
+    Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]
+        1. df_raw: Tabla de las 60 corridas individuales.
+        2. df_summary: Tabla agregada con medias, desviaciones e IC 95%.
+        3. df_timeseries: Series temporales concatenadas paso a paso.
+    """
     os.makedirs(output_dir, exist_ok=True)
     raw_runs_records: List[Dict[str, Any]] = []
     all_timeseries_dfs: List[pd.DataFrame] = []
@@ -50,17 +106,19 @@ def run_experiments(output_dir: str = "data", max_steps: int = DEFAULT_SIMULATIO
     current_exp = 0
 
     print("=" * 80)
-    print(f"INICIANDO SUITE EXPERIMENTAL: {total_experiments} SIMULACIONES EN TOTAL")
+    print(f"INICIANDO PROTOCOLO EXPERIMENTAL: {total_experiments} SIMULACIONES EN TOTAL")
     print("=" * 80)
     start_time = time.time()
 
+    # Bucle factorial principal
     for cond_name, strategy_cls in CONDITIONS.items():
         for load_label, rate in LOAD_SCENARIOS.items():
-            print(f"\n>> Condición: '{cond_name}' | Carga: '{load_label}' (lambda={rate})")
+            print(f"\n>> Condicion: '{cond_name}' | Carga: '{load_label}' (lambda={rate})")
             for seed in EXPERIMENT_SEEDS:
                 current_exp += 1
                 strategy_instance = strategy_cls()
 
+                # Instanciacion del modelo para la combinacion especifica
                 model = NetworkCongestionModel(
                     num_nodes=50,
                     k_neighbors=4,
@@ -75,9 +133,11 @@ def run_experiments(output_dir: str = "data", max_steps: int = DEFAULT_SIMULATIO
                     max_steps=max_steps
                 )
 
+                # Ejecucion de la corrida
                 df_steps = model.run()
                 all_timeseries_dfs.append(df_steps)
 
+                # Extraccion de metricas finales consolidadas
                 total_gen = model.total_generated
                 total_deliv = model.total_delivered
                 total_drop = model.total_dropped
@@ -86,8 +146,8 @@ def run_experiments(output_dir: str = "data", max_steps: int = DEFAULT_SIMULATIO
                 mean_latency = float(np.mean(model.latencies_history)) if model.latencies_history else 0.0
                 mean_queue = df_steps["mean_queue"].mean()
                 max_queue_peak = df_steps["max_queue"].max()
-                mean_pcr = df_steps["pcr"].mean() * 100.0
-                peak_pcr = df_steps["pcr"].max() * 100.0
+                mean_pcr = df_steps["pcr"].mean()
+                peak_pcr = df_steps["pcr"].max()
                 rec_time = calculate_recovery_time(df_steps)
 
                 raw_runs_records.append({
@@ -111,11 +171,12 @@ def run_experiments(output_dir: str = "data", max_steps: int = DEFAULT_SIMULATIO
                 print(f"  [{current_exp:02d}/{total_experiments}] Seed={seed:3d} | PDR={pdr:5.1f}% | Deliv={total_deliv:4d} | Drop={total_drop:4d} | Latency={mean_latency:4.1f} | MeanQueue={mean_queue:4.1f}")
 
     elapsed = time.time() - start_time
-    print(f"\n>> Experimentos completados en {elapsed:.2f} s.")
+    print(f"\n>> Protocolo experimental completado en {elapsed:.2f} s.")
 
     df_raw = pd.DataFrame(raw_runs_records)
     df_timeseries = pd.concat(all_timeseries_dfs, ignore_index=True)
 
+    # Inferencia estadistica sobre las 10 replicas de cada grupo
     metrics_to_aggregate = [
         "packets_generated", "packets_delivered", "packets_dropped",
         "pdr_percent", "throughput_packets_per_tick", "mean_latency_ticks",
@@ -141,6 +202,7 @@ def run_experiments(output_dir: str = "data", max_steps: int = DEFAULT_SIMULATIO
 
     df_summary = pd.DataFrame(summary_records)
 
+    # Exportacion de archivos CSV
     df_raw.to_csv(os.path.join(output_dir, "results_raw_runs.csv"), index=False)
     df_summary.to_csv(os.path.join(output_dir, "results_summary_table.csv"), index=False)
     df_timeseries.to_csv(os.path.join(output_dir, "results_timeseries.csv"), index=False)
