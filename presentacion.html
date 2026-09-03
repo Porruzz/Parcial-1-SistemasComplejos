@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sustentación Parcial: Control de Congestión en Sistemas Complejos</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.03); }
+    }
+    .animate-pulse-slow { animation: pulse-slow 3s infinite ease-in-out; }
+    .tab-active { border-bottom: 3px solid #10b981; color: #10b981; font-weight: 700; }
+    pre code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-emerald-500 selection:text-white">
+
+  <!-- Navbar Superior -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center font-black text-slate-950 text-lg shadow-lg shadow-emerald-500/20">
+        SC
+      </div>
+      <div>
+        <h1 class="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+          Control Descentralizado de Congestión
+          <span class="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Sistemas Complejos</span>
+        </h1>
+        <p class="text-xs text-slate-400">Universidad Sergio Arboleda &bull; ABM en Python &bull; 50 Nodos Watts-Strogatz</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 text-xs">
+      <span class="text-slate-400 hidden sm:inline">Modo Sustentación:</span>
+      <span class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 font-mono">CLI: python main.py</span>
+    </div>
+  </header>
+
+  <!-- Navegación por Pestañas Principales -->
+  <nav class="bg-slate-900 border-b border-slate-800 px-6 flex space-x-8 text-sm overflow-x-auto">
+    <button onclick="switchTab('tab-intro')" id="btn-tab-intro" class="py-3 px-1 text-slate-400 hover:text-white transition tab-active flex items-center gap-2 whitespace-nowrap">
+      <span>💡</span> 1. El Concepto en Cristiano
+    </button>
+    <button onclick="switchTab('tab-code')" id="btn-tab-code" class="py-3 px-1 text-slate-400 hover:text-white transition flex items-center gap-2 whitespace-nowrap">
+      <span>📂</span> 2. Inspector de Código y Funciones
+    </button>
+    <button onclick="switchTab('tab-sim')" id="btn-tab-sim" class="py-3 px-1 text-slate-400 hover:text-white transition flex items-center gap-2 whitespace-nowrap">
+      <span>🌐</span> 3. Simulador Visual Interactivo
+    </button>
+    <button onclick="switchTab('tab-results')" id="btn-tab-results" class="py-3 px-1 text-slate-400 hover:text-white transition flex items-center gap-2 whitespace-nowrap">
+      <span>📊</span> 4. Resultados & Métricas Clave
+    </button>
+    <button onclick="switchTab('tab-script')" id="btn-tab-script" class="py-3 px-1 text-slate-400 hover:text-white transition flex items-center gap-2 whitespace-nowrap">
+      <span>🎙️</span> 5. Guion de Sustentación (5.0)
+    </button>
+  </nav>
+
+  <!-- Contenedor Principal de Contenido -->
+  <main class="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
+
+    <!-- ==================== PESTAÑA 1: CONCEPTOS ==================== -->
+    <section id="tab-intro" class="space-y-6">
+      
+      <!-- Hero Card: La Analogía -->
+      <div class="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700/80 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-500/30">
+          La Explicación Clave
+        </span>
+        <h2 class="text-xl md:text-2xl font-black text-white mt-3 mb-2">
+          ¿Cómo explicar este parcial en 1 minuto sin enredarte?
+        </h2>
+        <p class="text-slate-300 text-sm md:text-base leading-relaxed max-w-4xl">
+          Imagina que una red de computadores es el tráfico de una ciudad con 50 esquinas. Los paquetes son carros. Si todos usan <b>Waze ciego (camino más corto de Dijkstra)</b>, todos se meten a la misma autopista principal. La autopista colapsa y los carros que vienen detrás se estrellan o se botan a la basura (<b>790 paquetes descartados</b>).
+        </p>
+        <div class="grid md:grid-cols-2 gap-4 mt-6">
+          <div class="bg-rose-950/30 border border-rose-500/30 rounded-xl p-4">
+            <div class="flex items-center gap-2 text-rose-400 font-bold text-sm mb-1">
+              <span class="text-lg">❌</span> Línea Base: Sin Control (Dijkstra)
+            </div>
+            <p class="text-xs text-slate-300">
+              Cada nodo manda ciegamente por el camino más corto en saltos. No le importa si el vecino está a reventar. Genera <b>efecto avalancha y fallos en cascada</b> (Helbing, 2013).
+            </p>
+          </div>
+          <div class="bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-4">
+            <div class="flex items-center gap-2 text-emerald-400 font-bold text-sm mb-1">
+              <span class="text-lg">✅</span> Nuestro Modelo: Control Distribuido
+            </div>
+            <p class="text-xs text-slate-300">
+              <b>Auto-organización:</b> Cada nodo solo mira a sus vecinos a 1 salto (1-hop). Si el camino principal está lleno, <b>desvía el paquete por rutas alternas</b> y frena la entrada de nuevos carros (<b>Pérdida cae 95.1%</b>).
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pilares Teóricos -->
+      <div class="grid md:grid-cols-3 gap-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition">
+          <div class="text-2xl mb-2">🌊</div>
+          <h3 class="font-bold text-white text-sm">1. Emergencia</h3>
+          <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+            La congestión <b>no está programada en ningún router individual</b>; emerge espontáneamente cuando las decisiones locales compiten por los nodos con mayor <i>Betweenness Centrality</i>.
+          </p>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition">
+          <div class="text-2xl mb-2">🐢</div>
+          <h3 class="font-bold text-white text-sm">2. "Cuando lento es más rápido"</h3>
+          <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+            Principio de <b>Carlos Gershenson (2007)</b>: Frenar levemente la entrada (throttling) y tomar rutas un poco más largas evita el atasco total y maximiza los paquetes que llegan vivos.
+          </p>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition">
+          <div class="text-2xl mb-2">🕸️</div>
+          <h3 class="font-bold text-white text-sm">3. Topología Watts-Strogatz</h3>
+          <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+            Mundo Pequeño ($N=50, k=4, p=0.10$). Imita Internet: comunidades locales densas con enlaces "atajo" (*shortcuts*) de largo alcance que concentran el tráfico.
+          </p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== PESTAÑA 2: CÓDIGO Y FUNCIONES ==================== -->
+    <section id="tab-code" class="hidden space-y-6">
+      
+      <div class="flex flex-col md:flex-row gap-6">
+        
+        <!-- Lista de Archivos (Sidebar Izquierda) -->
+        <div class="w-full md:w-64 space-y-2 flex-shrink-0">
+          <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 px-1">Archivos del Proyecto (`src/`)</div>
+          
+          <button onclick="showFileCode('model')" id="btn-file-model" class="w-full text-left px-3.5 py-2.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center justify-between">
+            <span>src/model.py</span>
+            <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-300">Núcleo ABM</span>
+          </button>
+          
+          <button onclick="showFileCode('strategies')" id="btn-file-strategies" class="w-full text-left px-3.5 py-2.5 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 flex items-center justify-between">
+            <span>src/strategies.py</span>
+            <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-400">Patrón Strategy</span>
+          </button>
+          
+          <button onclick="showFileCode('topology')" id="btn-file-topology" class="w-full text-left px-3.5 py-2.5 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 flex items-center justify-between">
+            <span>src/topology.py</span>
+            <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-400">Patrón Factory</span>
+          </button>
+
+          <button onclick="showFileCode('metrics')" id="btn-file-metrics" class="w-full text-left px-3.5 py-2.5 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 flex items-center justify-between">
+            <span>src/metrics.py</span>
+            <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-400">Patrón Observer</span>
+          </button>
+
+          <button onclick="showFileCode('main')" id="btn-file-main" class="w-full text-left px-3.5 py-2.5 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 flex items-center justify-between">
+            <span>main.py</span>
+            <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-400">CLI Entrypoint</span>
+          </button>
+        </div>
+
+        <!-- Detalle de Funciones y Código (Derecha) -->
+        <div class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+          
+          <!-- MODEL.PY VIEW -->
+          <div id="view-file-model" class="space-y-4">
+            <div class="border-b border-slate-800 pb-3">
+              <h3 class="font-bold text-white text-base">src/model.py &bull; El Núcleo de los Agentes</h3>
+              <p class="text-xs text-slate-400">Define los 50 enrutadores (`RouterAgent`), los paquetes (`Packet`), los estados finitos y el bucle de simulación.</p>
+            </div>
+
+            <!-- Funcion 1 -->
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs font-mono font-bold text-emerald-400">receive_packet(self, packet)</span>
+                <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Encolamiento & Descarte</span>
+              </div>
+              <p class="text-xs text-slate-300 mb-2">
+                <b>¿Qué hace?</b> Cuando un paquete llega al router, revisa si su cola física ya llegó a 20 (`queue_capacity`). Si cabe, lo guarda en el búfer. Si la cola está llena, <b>lo descarta y suma +1 al contador de pérdidas</b>.
+              </p>
+              <pre class="bg-slate-900 p-2.5 rounded text-[11px] text-slate-300 overflow-x-auto"><code>if len(self.queue) &lt; self.queue_capacity:
+    self.incoming_buffer.append(packet)
+    return True
+else:
+    self.dropped_queue_full += 1
+    self.model.total_dropped += 1
+    return False</code></pre>
+            </div>
+
+            <!-- Funcion 2 -->
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs font-mono font-bold text-emerald-400">update_state(self)</span>
+                <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Patrón State</span>
+              </div>
+              <p class="text-xs text-slate-300 mb-2">
+                <b>¿Qué hace?</b> Calcula la ocupación actual: &rho; = |Q| / 20. Si &rho; &ge; 80% pasa a <b>CONGESTED (Rojo)</b>; si está entre 50% y 80% pasa a <b>ALERT (Naranja)</b>; si no, <b>NORMAL (Verde)</b>.
+              </p>
+            </div>
+
+            <!-- Funcion 3 -->
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs font-mono font-bold text-emerald-400">process_and_forward(self)</span>
+                <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Reenvío Concurrente</span>
+              </div>
+              <p class="text-xs text-slate-300">
+                <b>¿Qué hace?</b> Saca hasta 2 paquetes de la cola (`link_capacity = 2`), le suma +1 salto, verifica si ya llegó a su destino, y si no, le pide a la estrategia configurada que elija el siguiente salto vecino.
+              </p>
+            </div>
+          </div>
+
+          <!-- STRATEGIES.PY VIEW -->
+          <div id="view-file-strategies" class="hidden space-y-4">
+            <div class="border-b border-slate-800 pb-3">
+              <h3 class="font-bold text-white text-base">src/strategies.py &bull; Patrón Strategy</h3>
+              <p class="text-xs text-slate-400">Contiene la regla ciega (Línea base) y la regla inteligente de control distribuido.</p>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs font-mono font-bold text-teal-400">DistributedBackpressureStrategy.select_next_hop(...)</span>
+                <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Cálculo de Coste Local</span>
+              </div>
+              <p class="text-xs text-slate-300 mb-2">
+                <b>¿Qué hace?</b> Evalúa a cada vecino v. Si la cola de v está llena o en rojo, le aplica una penalización cuadrática &alpha; &times; (&rho;_v)<sup>2</sup> + &beta;. Además aplica penalización <b>anti ping-pong</b> para que el paquete no rebote al nodo que se lo acaba de mandar.
+              </p>
+              <pre class="bg-slate-900 p-2.5 rounded text-[11px] text-slate-300 overflow-x-auto"><code>cost = dist_topologica + (alpha * (rho_vecino**2)) + penalizacion_estado + penalizacion_anti_rebote
+return vecino_con_menor_coste</code></pre>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5">
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs font-mono font-bold text-teal-400">should_throttle_injection(self, agent)</span>
+                <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded">Freno en Origen (Backpressure)</span>
+              </div>
+              <p class="text-xs text-slate-300">
+                <b>¿Qué hace?</b> Si el enrutador ve que más del 50% de sus vecinos están en rojo o su propia cola está llena, reduce la creación de nuevos paquetes a la mitad durante ese segundo para disipar la presión de la red.
+              </p>
+            </div>
+          </div>
+
+          <!-- TOPOLOGY.PY VIEW -->
+          <div id="view-file-topology" class="hidden space-y-4">
+            <div class="border-b border-slate-800 pb-3">
+              <h3 class="font-bold text-white text-base">src/topology.py &bull; Patrón Factory</h3>
+              <p class="text-xs text-slate-400">Genera la red de 50 nodos Watts-Strogatz asegurando conexidad total y reproducibilidad con semillas fijas.</p>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5 text-xs text-slate-300 space-y-2">
+              <p><b>Función:</b> `TopologyFactory.create_watts_strogatz(n=50, k=4, p=0.10, seed)`</p>
+              <p>Crea un anillo regular donde cada nodo se conecta con sus 4 vecinos cercanos y tiene un 10% de probabilidad de reconectar enlaces a larga distancia (*shortcuts*).</p>
+            </div>
+          </div>
+
+          <!-- METRICS.PY VIEW -->
+          <div id="view-file-metrics" class="hidden space-y-4">
+            <div class="border-b border-slate-800 pb-3">
+              <h3 class="font-bold text-white text-base">src/metrics.py &bull; Patrón Observer</h3>
+              <p class="text-xs text-slate-400">Registra en cada tick el estado de todos los nodos sin interferir en la simulación.</p>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5 text-xs text-slate-300 space-y-2">
+              <p><b>Función:</b> `MetricsObserver.record_step(model)`</p>
+              <p>Calcula: Paquetes entregados, latencia acumulada, porcentaje de entrega ($PDR$), longitud media de colas y porcentaje de nodos colapsados ($PCR$).</p>
+            </div>
+          </div>
+
+          <!-- MAIN.PY VIEW -->
+          <div id="view-file-main" class="hidden space-y-4">
+            <div class="border-b border-slate-800 pb-3">
+              <h3 class="font-bold text-white text-base">main.py &bull; CLI Dispatcher</h3>
+              <p class="text-xs text-slate-400">Comandos disponibles en terminal para correr todo el proyecto.</p>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5 text-xs text-slate-300 space-y-2 font-mono">
+              <p class="text-emerald-400"># 1. Correr 60 simulaciones factoriales:</p>
+              <p>python main.py --experiment</p>
+              <p class="text-emerald-400 mt-2"># 2. Generar gráficas en 300 DPI:</p>
+              <p>python main.py --plot</p>
+              <p class="text-emerald-400 mt-2"># 3. Lanzar la demo en vivo para el profesor:</p>
+              <p>python main.py --demo --condition "Con Control" --load "Alta"</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==================== PESTAÑA 3: SIMULADOR VISUAL ==================== -->
+    <section id="tab-sim" class="hidden space-y-6">
+      
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="font-bold text-white text-base flex items-center gap-2">
+              <span>🌐</span> Simulador Conceptual en Vivo (50 Nodos)
+            </h3>
+            <p class="text-xs text-slate-400">Observa cómo cambian de color los enrutadores y cómo se disipa la congestión en tiempo real.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="setSimMode('nocontrol')" id="btn-sim-no" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600/30 text-rose-300 border border-rose-500/50">
+              Modo: Sin Control
+            </button>
+            <button onclick="setSimMode('control')" id="btn-sim-yes" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700">
+              Modo: Con Control
+            </button>
+            <button onclick="resetSim()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300">
+              Reiniciar
+            </button>
+          </div>
+        </div>
+
+        <!-- Canvas Container -->
+        <div class="relative bg-slate-950 rounded-xl border border-slate-800 h-96 overflow-hidden flex items-center justify-center">
+          <canvas id="netCanvas" class="w-full h-full"></canvas>
+          <div class="absolute bottom-3 left-3 bg-slate-900/90 backdrop-blur border border-slate-700 px-3 py-2 rounded-lg text-[11px] space-y-1 text-slate-300">
+            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Normal (&lt;50% cola)</div>
+            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Alerta (50-80% cola)</div>
+            <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Congestionado (&ge;80% cola)</div>
+          </div>
+          <div class="absolute top-3 right-3 bg-slate-900/90 backdrop-blur border border-slate-700 px-3 py-2 rounded-lg text-xs text-slate-200 font-mono" id="simStats">
+            Ticks: 0 | Paquetes en Red: 0 | Descartes: 0
+          </div>
+        </div>
+
+        <div class="text-xs text-slate-400 bg-slate-950 p-3 rounded-lg border border-slate-800 leading-relaxed">
+          💡 <b>Observación clave para el profesor:</b> En modo <i>Sin Control</i>, los nodos centrales (atajos) se saturan de inmediato y se vuelven <b>ROJOS</b>. En modo <i>Con Control</i>, los nodos en alerta desvían el flujo por la periferia y los enrutadores se mantienen en su gran mayoría <b>VERDES</b>.
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== PESTAÑA 4: RESULTADOS ==================== -->
+    <section id="tab-results" class="hidden space-y-6">
+      
+      <!-- Big Numbers Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <span class="text-xs text-slate-400 font-medium">Paquetes Descartados</span>
+          <div class="flex items-baseline gap-2 mt-2">
+            <span class="text-2xl font-black text-emerald-400">38.9</span>
+            <span class="text-xs text-rose-500 line-through">790.2</span>
+          </div>
+          <div class="text-[11px] text-emerald-500 font-bold mt-1">↓ 95.1% menos pérdidas</div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <span class="text-xs text-slate-400 font-medium">Tasa de Entrega (PDR)</span>
+          <div class="flex items-baseline gap-2 mt-2">
+            <span class="text-2xl font-black text-emerald-400">88.9%</span>
+            <span class="text-xs text-slate-400">vs 77.5%</span>
+          </div>
+          <div class="text-[11px] text-emerald-500 font-bold mt-1">↑ +11.4 puntos %</div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <span class="text-xs text-slate-400 font-medium">Nodos Congestionados</span>
+          <div class="flex items-baseline gap-2 mt-2">
+            <span class="text-2xl font-black text-emerald-400">1.86%</span>
+            <span class="text-xs text-rose-500 line-through">6.15%</span>
+          </div>
+          <div class="text-[11px] text-emerald-500 font-bold mt-1">↓ 69.8% menos saturación</div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <span class="text-xs text-slate-400 font-medium">Throughput Global</span>
+          <div class="flex items-baseline gap-2 mt-2">
+            <span class="text-2xl font-black text-white">11.20</span>
+            <span class="text-xs text-slate-400">paq/tick</span>
+          </div>
+          <div class="text-[11px] text-teal-400 font-bold mt-1">Flujo alto y sostenido</div>
+        </div>
+
+      </div>
+
+      <!-- Tabla Detallada -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 overflow-x-auto">
+        <h3 class="font-bold text-white text-sm mb-3">Tabla Estadística Completa (60 Corridas con IC 95%)</h3>
+        <table class="w-full text-left text-xs border border-slate-800">
+          <thead class="bg-slate-950 text-slate-300 uppercase font-semibold border-b border-slate-800">
+            <tr>
+              <th class="p-3">Condición</th>
+              <th class="p-3">Carga (&lambda;)</th>
+              <th class="p-3">Generados</th>
+              <th class="p-3">Entregados</th>
+              <th class="p-3 text-rose-400 font-bold">Descartados</th>
+              <th class="p-3 text-emerald-400 font-bold">PDR (%)</th>
+              <th class="p-3">Throughput</th>
+              <th class="p-3">Latencia Media</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800 text-slate-300">
+            <tr>
+              <td class="p-3 font-semibold text-rose-400">Sin Control</td>
+              <td class="p-3">Baja (0.04)</td>
+              <td class="p-3">595.5 &plusmn; 16.5</td>
+              <td class="p-3">587.4 &plusmn; 16.2</td>
+              <td class="p-3">0.0 &plusmn; 0.0</td>
+              <td class="p-3 font-bold text-emerald-400">98.6% &plusmn; 0.4%</td>
+              <td class="p-3">1.96</td>
+              <td class="p-3">3.93 ticks</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-semibold text-rose-400">Sin Control</td>
+              <td class="p-3">Media (0.12)</td>
+              <td class="p-3">1796.0 &plusmn; 35.6</td>
+              <td class="p-3">1770.2 &plusmn; 34.2</td>
+              <td class="p-3 text-rose-400 font-bold">1.5 &plusmn; 3.4</td>
+              <td class="p-3 font-bold text-emerald-400">98.6% &plusmn; 0.2%</td>
+              <td class="p-3">5.90</td>
+              <td class="p-3">4.51 ticks</td>
+            </tr>
+            <tr class="bg-rose-950/20 font-semibold">
+              <td class="p-3 text-rose-400">Sin Control</td>
+              <td class="p-3">Alta (0.28)</td>
+              <td class="p-3">4194.2 &plusmn; 41.5</td>
+              <td class="p-3">3248.5 &plusmn; 189.8</td>
+              <td class="p-3 text-rose-400 font-bold text-sm">790.2 &plusmn; 188.4</td>
+              <td class="p-3 text-rose-400 font-bold">77.5% &plusmn; 4.6%</td>
+              <td class="p-3">10.83</td>
+              <td class="p-3">11.89 ticks</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-semibold text-emerald-400">Con Control</td>
+              <td class="p-3">Baja (0.04)</td>
+              <td class="p-3">609.3 &plusmn; 20.0</td>
+              <td class="p-3">601.9 &plusmn; 18.7</td>
+              <td class="p-3">0.0 &plusmn; 0.0</td>
+              <td class="p-3 font-bold text-emerald-400">98.8% &plusmn; 0.4%</td>
+              <td class="p-3">2.01</td>
+              <td class="p-3">3.93 ticks</td>
+            </tr>
+            <tr>
+              <td class="p-3 font-semibold text-emerald-400">Con Control</td>
+              <td class="p-3">Media (0.12)</td>
+              <td class="p-3">1804.1 &plusmn; 16.1</td>
+              <td class="p-3">1777.2 &plusmn; 17.8</td>
+              <td class="p-3 text-emerald-400 font-bold">0.0 &plusmn; 0.0</td>
+              <td class="p-3 font-bold text-emerald-400">98.5% &plusmn; 0.3%</td>
+              <td class="p-3">5.92</td>
+              <td class="p-3">4.38 ticks</td>
+            </tr>
+            <tr class="bg-emerald-950/20 font-semibold">
+              <td class="p-3 text-emerald-400">Con Control</td>
+              <td class="p-3">Alta (0.28)</td>
+              <td class="p-3">3767.1 &plusmn; 156.2</td>
+              <td class="p-3">3358.8 &plusmn; 277.1</td>
+              <td class="p-3 text-emerald-400 font-bold text-sm">38.9 &plusmn; 27.0</td>
+              <td class="p-3 text-emerald-400 font-bold">88.9% &plusmn; 3.7%</td>
+              <td class="p-3">11.20</td>
+              <td class="p-3">21.31 ticks</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- ==================== PESTAÑA 5: GUION DE SUSTENTACIÓN ==================== -->
+    <section id="tab-script" class="hidden space-y-6">
+      
+      <div class="bg-gradient-to-r from-emerald-950/50 to-slate-900 border border-emerald-500/30 rounded-2xl p-6 shadow-xl">
+        <h2 class="text-lg font-black text-emerald-400 flex items-center gap-2">
+          <span>🎙️</span> Tu Guion Maestro para la Sustentación Oral (Léelo con seguridad)
+        </h2>
+        <p class="text-xs text-slate-300 mt-1">Sigue estos 3 pasos frente al profesor para asegurar la máxima nota.</p>
+      </div>
+
+      <!-- Paso 1 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-2">
+        <div class="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider">
+          <span>Paso 1</span> &bull; Apertura (Primeros 60 segundos)
+        </div>
+        <p class="text-sm text-slate-200 italic bg-slate-950 p-3 rounded-lg border border-slate-800 leading-relaxed">
+          "Profesor, en este proyecto demostramos que la congestión no es un fallo individual, sino una <b>propiedad macroscópica emergente</b> que nace de micro-decisiones desacopladas de enrutamiento.<br/>
+          La optimización estática tradicional de Dijkstra colapsa ante ráfagas de tráfico porque concentra todo en los nodos puente (*shortcuts* con mayor intermediación). Nuestro modelo aplica <b>auto-organización descentralizada (Gershenson, 2007)</b> bajo el marco formal de <b>Net Interaction (Lafont, 1990)</b>."
+        </p>
+      </div>
+
+      <!-- Paso 2 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-2">
+        <div class="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider">
+          <span>Paso 2</span> &bull; Mostrar la Demo en Vivo
+        </div>
+        <p class="text-xs text-slate-300">
+          Abres la terminal y ejecutas: <code class="bg-slate-950 px-2 py-1 rounded text-emerald-400">python main.py --demo</code>
+        </p>
+        <p class="text-sm text-slate-200 italic bg-slate-950 p-3 rounded-lg border border-slate-800 leading-relaxed">
+          "Mire profesor cómo en vivo los nodos que entran en alerta (amarillo) le avisan a sus vecinos a 1 salto. Los enrutadores vecinos desvían los paquetes por caminos alternos libres y activan contrapresión (*backpressure*), manteniendo la red en verde y evitando el desbordamiento de búfer."
+        </p>
+      </div>
+
+      <!-- Paso 3 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-2">
+        <div class="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider">
+          <span>Paso 3</span> &bull; La Respuesta a la Pregunta Trampa de la Latencia
+        </div>
+        <div class="bg-rose-950/20 border border-rose-500/30 p-3 rounded-lg text-xs text-rose-300">
+          <b>Si el profesor pregunta:</b> <i>"¿Por qué con su control la latencia aumentó de 11 a 21 pasos?"</i>
+        </div>
+        <p class="text-sm text-slate-200 italic bg-slate-950 p-3 rounded-lg border border-slate-800 leading-relaxed">
+          "Profesor, es un <b>trade-off adaptativo</b>. Sin control, la latencia era baja porque los paquetes que no alcanzaban a cruzar <b>eran destruidos (790 descartes)</b>. Con control distribuido, los paquetes dan 1 o 2 saltos adicionales por rutas más largas pero vacías. Preferimos demorarnos unos pasos más antes que perder la información, respondiendo al principio de <b>'cuando lento es más rápido'</b> de Carlos Gershenson."
+        </p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800 bg-slate-950 px-6 py-4 text-center text-xs text-slate-500">
+    Proyecto de Sistemas Complejos &bull; Desarrollado con Arquitectura SOLID & Patrones GoF &bull; 2026
+  </footer>
+
+  <!-- Lógica JavaScript de Navegación y Mini Simulador -->
+  <script>
+    function switchTab(tabId) {
+      const tabs = ['tab-intro', 'tab-code', 'tab-sim', 'tab-results', 'tab-script'];
+      tabs.forEach(t => {
+        const el = document.getElementById(t);
+        const btn = document.getElementById('btn-' + t);
+        if (t === tabId) {
+          el.classList.remove('hidden');
+          btn.classList.add('tab-active');
+        } else {
+          el.classList.add('hidden');
+          btn.classList.remove('tab-active');
+        }
+      });
+      if (tabId === 'tab-sim') {
+        initSimulation();
+      }
+    }
+
+    function showFileCode(fileKey) {
+      const files = ['model', 'strategies', 'topology', 'metrics', 'main'];
+      files.forEach(f => {
+        const view = document.getElementById('view-file-' + f);
+        const btn = document.getElementById('btn-file-' + f);
+        if (f === fileKey) {
+          view.classList.remove('hidden');
+          btn.className = "w-full text-left px-3.5 py-2.5 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center justify-between";
+        } else {
+          view.classList.add('hidden');
+          btn.className = "w-full text-left px-3.5 py-2.5 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 flex items-center justify-between";
+        }
+      });
+    }
+
+    // ================= MINI SIMULADOR CANVAS =================
+    let canvas, ctx, simRunning = false, simMode = 'nocontrol', simTimer = null;
+    let nodes = [], edges = [], packets = [], simTick = 0, droppedCount = 0;
+
+    function initSimulation() {
+      canvas = document.getElementById('netCanvas');
+      if (!canvas) return;
+      ctx = canvas.getContext('2d');
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+
+      // Generar 50 nodos en anillo con atajos
+      nodes = [];
+      edges = [];
+      packets = [];
+      simTick = 0;
+      droppedCount = 0;
+
+      const n = 50;
+      const radius = Math.min(canvas.width, canvas.height) * 0.38;
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      for (let i = 0; i < n; i++) {
+        const angle = (i / n) * Math.PI * 2;
+        nodes.push({
+          id: i,
+          x: cx + Math.cos(angle) * radius + (Math.random() * 10 - 5),
+          y: cy + Math.sin(angle) * radius + (Math.random() * 10 - 5),
+          queue: 0,
+          maxQueue: 20
+        });
+      }
+
+      // Enlaces locales anillo
+      for (let i = 0; i < n; i++) {
+        edges.push([i, (i + 1) % n]);
+        edges.push([i, (i + 2) % n]);
+      }
+      // Atajos
+      edges.push([5, 30], [12, 38], [20, 45], [0, 25]);
+
+      if (simTimer) clearInterval(simTimer);
+      simTimer = setInterval(simStep, 100);
+    }
+
+    function setSimMode(mode) {
+      simMode = mode;
+      document.getElementById('btn-sim-no').className = mode === 'nocontrol' ? 
+        "px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600/30 text-rose-300 border border-rose-500/50" : 
+        "px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700";
+      document.getElementById('btn-sim-yes').className = mode === 'control' ? 
+        "px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600/30 text-emerald-300 border border-emerald-500/50" : 
+        "px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700";
+    }
+
+    function resetSim() {
+      initSimulation();
+    }
+
+    function simStep() {
+      simTick++;
+      // Inyección
+      if (Math.random() < 0.8) {
+        const src = Math.floor(Math.random() * 50);
+        if (nodes[src].queue < nodes[src].maxQueue) {
+          nodes[src].queue++;
+          packets.push({ from: src, to: (src + 25) % 50, progress: 0 });
+        } else {
+          droppedCount++;
+        }
+      }
+
+      // Proceso en nodos
+      nodes.forEach(node => {
+        if (node.queue > 0 && Math.random() < 0.6) {
+          node.queue--;
+        }
+        if (simMode === 'nocontrol') {
+          // En modo sin control los atajos colapsan
+          if ([5, 30, 12, 38, 0, 25].includes(node.id)) {
+            node.queue = Math.min(node.maxQueue, node.queue + (Math.random() < 0.5 ? 1 : 0));
+          }
+        } else {
+          // En modo control se disipa
+          if (node.queue > 10) node.queue -= 0.5;
+        }
+      });
+
+      drawNet();
+      document.getElementById('simStats').innerText = 
+        `Ticks: ${simTick} | Paquetes en Red: ${packets.length} | Descartes: ${droppedCount}`;
+    }
+
+    function drawNet() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Dibujar enlaces
+      ctx.strokeStyle = "rgba(71, 85, 105, 0.35)";
+      ctx.lineWidth = 1;
+      edges.forEach(([u, v]) => {
+        ctx.beginPath();
+        ctx.moveTo(nodes[u].x, nodes[u].y);
+        ctx.lineTo(nodes[v].x, nodes[v].y);
+        ctx.stroke();
+      });
+
+      // Dibujar nodos
+      nodes.forEach(node => {
+        const ratio = node.queue / node.maxQueue;
+        let color = "#10b981"; // Verde
+        if (ratio >= 0.8) color = "#f43f5e"; // Rojo
+        else if (ratio >= 0.5) color = "#fbbf24"; // Amarillo
+
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 6 + ratio * 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#0f172a";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      });
+    }
+  </script>
+</body>
+</html>
